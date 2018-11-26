@@ -19,6 +19,31 @@ const char INDEX_HTML[] =
   "<label for=\"pass\">Wifi Password:</label>"
   "<input type=\"text\" id=\"pass\" name=\"pass\">"
   "</div>"
+
+  "<div>"
+  "<label for=\"address\">InfluxDB IP Address:</label>"
+  "<input type=\"text\" id=\"address\" name=\"address\">"
+  "</div>"
+  "<div>"
+  "<label for=\"port\">InfluxDB Port:</label>"
+  "<input type=\"text\" id=\"port\" name=\"port\">"
+  "</div>"
+  "<div>"
+  "<label for=\"database\">Database Name:</label>"
+  "<input type=\"text\" id=\"database\" name=\"database\">"
+  "</div>"
+  "<div>"
+  "<label for=\"measurement\">Measurement Name:</label>"
+  "<input type=\"text\" id=\"measurement\" name=\"measurement\">"
+  "</div>"
+  "<div>"
+  "<label for=\"host\">Host Name (this sensor's name):</label>"
+  "<input type=\"text\" id=\"host\" name=\"host\">"
+  "</div>"
+  "<div>"
+  "<label for=\"region\">Region Name:</label>"
+  "<input type=\"text\" id=\"region\" name=\"region\">"
+  "</div>"
   "<div class=\"button\">"
   "<INPUT type=\"submit\" value=\"Send\"> <INPUT type=\"reset\">"
   "</div>"
@@ -40,7 +65,16 @@ void handleInfo()
 {
   readEEPROM();
   
-  server.send(200, "text/html", "ssid: " + String(ssid) + " pass: " + String(pass));
+  server.send(200, "text/html", 
+    "ssid: " + String(ssid) +
+    "\n pass: " + String(pass) +
+    "\n InfluxDB IP Address: " + String(influx_address) +
+    "\n InfluxDB Port: " + String(influx_port) +
+    "\n Database Name: " + String(database_name) +
+    "\n Measurement Name: " + String(measurement_name) +
+    "\n Host Name: " + String(host_name) +
+    "\n Region: " + String(region)
+  );
 }
 
 

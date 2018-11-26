@@ -22,6 +22,14 @@ int buttonState = 0;
 char ssid[50];
 char pass[50];
 
+// InfluxDB settings, max of 25 characters each
+char influx_address[25];
+char influx_port[25];
+char database_name[25];
+char measurement_name[25];
+char host_name[25];
+char region[25];
+
 // How often should the sensor update (in milliseconds)
 int update_interval = 1000;
 
@@ -30,22 +38,21 @@ const char *host = "192.168.1.218"; // ip or domain name
 uint16_t port = 8086;               // Set the port your server is listening for data on. Default is 8086
 
 // Measurement Settings
-// These are stored in a struct. If you're logging multiple measurements,
-// create multiple structs.
-Measurement basement_si7021_temp = {
+Measurement temp_config; /* = {
     "FortyTwoFairchild",   // Database name
     "DanielsRoom",          // Measurement name
     "fahrenheit",          // Field key
     "esp8266-DanielsRoom1", // Host name (A name or unique id for the sensor)
     "us-east"              // Region
-};
-Measurement basement_si7021_humidity = {
+};*/
+
+Measurement humidity_config; /* = {
     "FortyTwoFairchild",   // Database name
     "DanielsRoom",          // Measurement name
     "relative_humidity",   // Field key
     "esp8266-DanielsRoom1", // Host name (A name or unique id for the sensor)
     "us-east"              // Region
-};
+}; */
 
 // Initialize the Si7021 Temp & Humidity sensor
 Weather sensor;
@@ -68,8 +75,15 @@ void setup()
 {
   delay(1000);
 
+  // Initialize our settings with null values
   memset(ssid, 0, sizeof(ssid));
   memset(pass, 0, sizeof(pass));
+  memset(influx_address, 0, sizeof(influx_address));
+  memset(influx_port, 0, sizeof(influx_port));
+  memset(database_name, 0, sizeof(database_name));
+  memset(measurement_name, 0, sizeof(measurement_name));
+  memset(host_name, 0, sizeof(host_name));
+  memset(region, 0, sizeof(region));
 
   // Store Wi-Fi and database settings the ESP8266's flash storage
   // (Unlike on Arduinos it isn't REAL EEprom, it just pretends to be)
@@ -121,6 +135,25 @@ void setup()
     {
       delay(500);
     }
+
+    load_from_eeprom();
+
+    // Intalize the structs with our InfluxDB settings
+    temp_config = {
+      database_name,
+      measurement_name,
+      "fahrenheit",
+      host_name,
+      region
+    }
+
+    humidity_config = {
+      database_name,
+      measurement_name,
+      "relative_humidity",
+      host_name,
+      region
+    }
   }
 }
 
@@ -137,8 +170,8 @@ void loop()
   {
     while (true)
     {
-      influx_server.update(basement_si7021_temp, read_temperature());
-      influx_server.update(basement_si7021_humidity, read_humidity());
+      influx_server.update(temp_config, read_temperature());
+      influx_server.update(humidity_config, read_humidity());
 
       // Pause for update_interval
       delay(update_interval);

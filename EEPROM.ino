@@ -19,79 +19,61 @@ void clearEEPROM()
   EEPROM.commit();
 }
 
-void saveConfig(String raw_ssid, String raw_pass)
+void saveConfig(String raw_ssid, String raw_pass, String influx_server, String influx_address, String database_name, String host_name)
 {
   clearEEPROM();
 
-  // Copy the raw values into our char* arrays
-  raw_ssid.toCharArray(ssid, 50);
-  raw_pass.toCharArray(pass, 50);
-
-  // Iterate over our char* arrays and store them in EEPROM for persistant storage
-  for(int i = 0; i < raw_ssid.length(); i++)
-  {
-    EEPROM.write(i, ssid[i]);
-    EEPROM.commit();
-    
-    digitalWrite(breadboardLED, HIGH);
-    delay(250);
-    digitalWrite(breadboardLED, LOW);
-    delay(250);
-  }
-
-  for(int i = 0; i < raw_pass.length(); i++)
-  {
-    EEPROM.write(50 + i, pass[i]);
-
-    digitalWrite(breadboardLED, HIGH);
-    delay(250);
-    digitalWrite(breadboardLED, LOW);
-    delay(250);
-  }
+  writeSettings(0, raw_ssid);
+  writeSetting(50, raw_pass);
+  writeSettings(100, influx_address);
+  writeSetting(125, influx_port);
+  writeSetting(150, database_name);
+  writeSetting(175, measurement_name);
+  writeSetting(200, host_name);
+  writeSetting(225, region);
 
   EEPROM.commit();
-  
   delay(100);
 }
 
-void readEEPROM()
+void load_from_eeprom()
 {
-  for(int address = 0 ; address < 50; address++)
+  readSetting(0, 50, ssid);
+  readSetting(50, 50, pass);
+  readSetting(100, 25, influx_address);
+  readSetting(125, 25, influx_port);
+  readSetting(150, 25, database_name);
+  readSetting(175, 25, measurement_name);
+  readSetting(200, 25, host_name);
+  readSetting(225, 25, region);
+}
+
+void writeSetting(int start_address, String value)
+{
+  for (int i = 0; i < value.length(); i++)
   {
-    // read a byte from the current address of the EEPROM
-    char value = EEPROM.read(address);
-
-    // if we've hit the end of the string
-    if(value == '\0')
-    {
-     digitalWrite(breadboardLED, HIGH);
-     delay(1000);
-     digitalWrite(breadboardLED, LOW);
-     delay(250);
-      ssid[address] = '\0';
-      break;
-    }
-
-    digitalWrite(breadboardLED, HIGH);
-    delay(250);
-    digitalWrite(breadboardLED, LOW);
-    delay(250);
-
-    ssid[address] = value;
+    EEPROM.write(address + i, value.charAt(i));
   }
 
-  for (int address = 0; address < 50; address++ )
+  EEPROM.commit();
+  delay(100);
+}
+
+
+void readSetting(int base_address, int max_length, char* output)
+{
+  for (int i = 0; i < max_length; i++)
   {
     // read a byte from the current address of the EEPROM
-    char value = EEPROM.read(50 + address);
+    char value = EEPROM.read(base_address + i);
 
     // if we've hit the end of the string
-    if(value == '\0')
+    if (value == '\0')
     {
-      pass[address] = '\0';
+      output[i] = '\0';
       break;
     }
 
-    pass[address] = value;
+    output[i] = value;
   }
 }
