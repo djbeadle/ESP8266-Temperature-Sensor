@@ -37,35 +37,22 @@ int update_interval = 1000;
 const char *host = "192.168.1.218"; // ip or domain name
 uint16_t port = 8086;               // Set the port your server is listening for data on. Default is 8086
 
-// Measurement Settings
-Measurement temp_config; /* = {
-    "FortyTwoFairchild",   // Database name
-    "DanielsRoom",          // Measurement name
-    "fahrenheit",          // Field key
-    "esp8266-DanielsRoom1", // Host name (A name or unique id for the sensor)
-    "us-east"              // Region
-};*/
-
-Measurement humidity_config; /* = {
-    "FortyTwoFairchild",   // Database name
-    "DanielsRoom",          // Measurement name
-    "relative_humidity",   // Field key
-    "esp8266-DanielsRoom1", // Host name (A name or unique id for the sensor)
-    "us-east"              // Region
-}; */
+// Measurement Structs
+Measurement temp_config;
+Measurement humidity_config;
 
 // Initialize the Si7021 Temp & Humidity sensor
 Weather sensor;
 
-// For connecting to the Wi-Fi Network
+// Initialize Wi-Fi connection
 ESP8266WiFiMulti WiFiMulti;
-
-// Create the database object
-ESP8266InfluxClient influx_server = ESP8266InfluxClient(host, port);
 
 // Create the web server object used for setting the configuration variables
 ESP8266WebServer server(80);
 
+// Declare the database object. Initalize it in setup once we've loaded settings
+// from the EEPROM
+ESP8266InfluxClient influx_server;
 
 // State 0 = EEPROM is clear, either because this is the first run or it was reset
 // State 1 = We've got Wi-Fi credentials in the EEPROM
@@ -86,8 +73,8 @@ void setup()
   memset(region, 0, sizeof(region));
 
   // Store Wi-Fi and database settings the ESP8266's flash storage
-  // (Unlike on Arduinos it isn't REAL EEprom, it just pretends to be)
-  // 512 bytes are enough for our purposes.
+  // (Unlike on Arduinos it isn't REAL EEPROM , it just pretends to be)
+  // 512 bytes are enough for our purposes, but up to 4096 is available.
   EEPROM.begin(512);
 
   // Repurpose RX & TX as GPIO
@@ -121,8 +108,10 @@ void setup()
   {
     state = 1;
 
-    // Read the WiFi settings from the EEPROM
+    // Read the configuration settings from the EEPROM
     readEEPROM();
+
+    influx_server = ESP8266InfluxClient(host, port);
 
     // Fire up the sensor
     sensor.begin();
@@ -136,7 +125,7 @@ void setup()
       delay(500);
     }
 
-    load_from_eeprom();
+    load_config();
 
     // Intalize the structs with our InfluxDB settings
     temp_config = {

@@ -1,4 +1,7 @@
-void clearEEPROM()
+/**
+  Erase the entire EEPROM
+*/
+void clear_config()
 {
   // Blink twice to acknowledge
   digitalWrite(breadboardLED, HIGH);
@@ -19,7 +22,10 @@ void clearEEPROM()
   EEPROM.commit();
 }
 
-void saveConfig(String raw_ssid, String raw_pass, String influx_server, String influx_address, String database_name, String host_name)
+/**
+  Save the configuration variables in the EEPROM
+*/
+void save_config(String raw_ssid, String raw_pass, String influx_server, String influx_address, String database_name, String host_name)
 {
   clearEEPROM();
 
@@ -36,7 +42,10 @@ void saveConfig(String raw_ssid, String raw_pass, String influx_server, String i
   delay(100);
 }
 
-void load_from_eeprom()
+/**
+  Load the configuration variables from the EEPROM
+*/
+void load_config()
 {
   readSetting(0, 50, ssid);
   readSetting(50, 50, pass);
@@ -48,6 +57,12 @@ void load_from_eeprom()
   readSetting(225, 25, region);
 }
 
+/**
+  Write a String to a specific location in the EEPROM
+
+  @param start_address The byte to start writing at
+  @param value The String to save in the EEPROM
+*/
 void writeSetting(int start_address, String value)
 {
   for (int i = 0; i < value.length(); i++)
@@ -59,7 +74,13 @@ void writeSetting(int start_address, String value)
   delay(100);
 }
 
+/**
+  Read a String from the EEPROM and store it in a char array
 
+  @param base_address The starting address of the string
+  @param max_length The maximum possible length of the string
+  @param output The char array to put the output in
+*/
 void readSetting(int base_address, int max_length, char* output)
 {
   for (int i = 0; i < max_length; i++)
