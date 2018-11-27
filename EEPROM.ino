@@ -25,18 +25,19 @@ void clear_config()
 /**
   Save the configuration variables in the EEPROM
 */
-void save_config(String raw_ssid, String raw_pass, String influx_server, String influx_address, String database_name, String host_name)
+void save_config(String raw_ssid, String raw_pass, String influx_address, String influx_port, String database_name, String measurement_name, String host_name, String region, int interval)
 {
-  clearEEPROM();
+  clear_config();
 
-  writeSettings(0, raw_ssid);
+  writeSetting(0, raw_ssid);
   writeSetting(50, raw_pass);
-  writeSettings(100, influx_address);
+  writeSetting(100, influx_address);
   writeSetting(125, influx_port);
   writeSetting(150, database_name);
   writeSetting(175, measurement_name);
   writeSetting(200, host_name);
   writeSetting(225, region);
+  EEPROM.put(250, interval);
 
   EEPROM.commit();
   delay(100);
@@ -55,6 +56,7 @@ void load_config()
   readSetting(175, 25, measurement_name);
   readSetting(200, 25, host_name);
   readSetting(225, 25, region);
+  EEPROM.get(250, update_interval);
 }
 
 /**
@@ -67,7 +69,7 @@ void writeSetting(int start_address, String value)
 {
   for (int i = 0; i < value.length(); i++)
   {
-    EEPROM.write(address + i, value.charAt(i));
+    EEPROM.write(start_address + i, value.charAt(i));
   }
 
   EEPROM.commit();

@@ -7,7 +7,7 @@
 #include "helpers.h"
 
 // My custom library for feeding to InfluxDB
-#include <ESP8266InfluxClient.h>
+#include "ESP8266InfluxClient.h"
 
 // For the Si7021 temperature sensor:
 #include <Wire.h>
@@ -33,7 +33,7 @@ char region[25];
 // How often should the sensor update (in milliseconds)
 int update_interval = 1000;
 
-// Set the details of your InfluxDB server here
+// These values are overwritten when entering settings in the web browser
 const char *host = "192.168.1.218"; // ip or domain name
 uint16_t port = 8086;               // Set the port your server is listening for data on. Default is 8086
 
@@ -52,7 +52,7 @@ ESP8266WebServer server(80);
 
 // Declare the database object. Initalize it in setup once we've loaded settings
 // from the EEPROM
-ESP8266InfluxClient influx_server;
+ESP8266InfluxClient influx_server = ESP8266InfluxClient(host, port);
 
 // State 0 = EEPROM is clear, either because this is the first run or it was reset
 // State 1 = We've got Wi-Fi credentials in the EEPROM
@@ -86,8 +86,6 @@ void setup()
   buttonState = digitalRead(breadboardButton);
   if (buttonState == LOW)
   {
-    clearEEPROM();
-
     // State 0 means Wi-Fi config mode
     state = 0;
   }
@@ -109,7 +107,7 @@ void setup()
     state = 1;
 
     // Read the configuration settings from the EEPROM
-    readEEPROM();
+    load_config();
 
     influx_server = ESP8266InfluxClient(host, port);
 
@@ -134,7 +132,7 @@ void setup()
       "fahrenheit",
       host_name,
       region
-    }
+    };
 
     humidity_config = {
       database_name,
@@ -142,7 +140,7 @@ void setup()
       "relative_humidity",
       host_name,
       region
-    }
+    };
   }
 }
 
